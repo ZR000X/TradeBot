@@ -1,5 +1,4 @@
 # TradeBot
-
 Welcome to TradeBot!
 
 Using the python-binance package (documentation: https://python-binance.readthedocs.io/en/latest/), we are developing an easy-to-use rebalancing bot.
@@ -52,3 +51,45 @@ NOW we are going to check if we are at priority level 2 or 1 or neither
 Max Priority present in sufficiently different assets is: 0
 There are no trades to be done... But...
 Yeah, no, nothing
+
+# Update pip in cmd
+python -m pip install --upgrade pip
+# Install dependencies
+pip install python-binance
+pip install wscat
+# links
+https://python-binance.readthedocs.io/en/latest/
+https://github.com/binance/binance-spot-api-docs/blob/master/web-socket-streams.md
+
+
+## PROJECT DIRECTORIES from zrfir
+cd "OneDrive\__Projects\Financial Freedom\Trading\TradeBot\Coinview"
+
+### Cmd that obtains a stream with the Binance API: BTCUSD --!>
+# See: 
+wscat -c wss://stream.binance.com:9443/ws/btcusdt@trade
+
+## Example of a trade data
+{"e":"trade","E":1609858662378,"s":"BTCUSDT","t":546883709,"p":"32146.78000000","q":"0.02893100","b":4163994208,"a":4163994165,"T":1609858662378,"m":false,"M":true}
+Payload: {
+  "e": "trade",     // Event type
+  "E": 123456789,   // Event time
+  "s": "BNBBTC",    // Symbol
+  "t": 12345,       // Trade ID
+  "p": "0.001",     // Price
+  "q": "100",       // Quantity
+  "b": 88,          // Buyer order ID
+  "a": 50,          // Seller order ID
+  "T": 123456785,   // Trade time
+  "m": true,        // Is the buyer the market maker?
+  "M": true         // Ignore
+}
+See: https://www.unixtimestamp.com/index.php for Unix Time Stamp converter
+
+wscat -c wss://stream.binance.com:9443/ws/btcusdt@trade // BTCUSDT Ticks
+wscat -c wss://stream.binance.com:9443/ws/btcusdt@kline_1m // BTCUSDT Candlestick 1min
+
+## To Pipe the data to a file, append the following to stream request
+ | tee <filename>
+
+
