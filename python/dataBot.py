@@ -6,50 +6,34 @@ from decimal import Decimal
 
 ## A Bot to fetch data from Binance API
 class DataBot:
-
-    ## Initiate the bot without the reporting
-    # def __init__(self, api_key, api_sec):
-    #     self.api_key = api_key
-    #     self.api_sec = api_sec
-    #     self.client = Client(api_key, api_sec)
-    #     self.speaking = False
-    #     self.spkr = None
-    
     ## Initialise the bot with the reporting
-    # def __init__(self, api_key: str, api_sec: str, file: FileIO):
-    #     self.api_key = api_key
-    #     self.api_sec = api_sec
-    #     self.client = Client(api_key, api_sec)
-    #     self.speaking = True
-    #     self.spkr = Speaker(file)
-
-    ## Initialise the bot with the reporting
-    def __init__(self, api_key: str, api_sec: str, spkr: Speaker):
-        self.api_key = api_key
-        self.api_sec = api_sec
-        self.client = Client(api_key, api_sec)
+    def __init__(self, client:Client, spkr: Speaker):
+        self.client = client
         self.speaking = True
         self.spkr = spkr
 
     ## fetch the current amount I hold from Binance
     def getTotalAssetBalance(self, symbol: str) -> float: 
-        self.speak("Getting Total Asset Balance for "+symbol)
+        self.speak("Getting Total Asset Balance for "+symbol+"...")
         toReturn = None    
         success = False        
         while success == False:
             try:
                 toReturn = float(self.client.get_asset_balance(asset=symbol)['free']) \
             + float(self.client.get_asset_balance(asset=symbol)['locked'])
-                success = True
-            except:
+                success = True           
+            except BinanceAPIException as e:
+                self.speak(e.status_code)
+                self.speak(e.message)
                 self.speak("Problem downloading Holding data for "+symbol+"... Retrying")
-                continue                
+                continue
+        self.speak("...which is "+str(toReturn))
         return toReturn 
     
     ## fetch the latest price for the supplied symbol from Binance API
-    def getQuote(self, symbol: str) -> float: 
+    def getQuote(self, symbol: str) -> float:
         self.speak("Getting Recent Quote for "+symbol)
-        toReturn = None 
+        toReturn = None
         success = False        
         while success == False:
             try:
@@ -59,27 +43,15 @@ class DataBot:
             except:
                 self.speak("Problem downloading Price data for "+symbol+"... Retrying")
                 continue                
+        self.speak("...which is "+str(toReturn))
         return toReturn
 
-    def formatTrade(self, symbol: str, tradeAmount: float) ->float:
+    ## A method to format the trade amount
+    def formatTrade(self, symbol: str, tradeAmount: float) -> float:
         stepSize = Decimal(self.client.get_symbol_info(symbol)['filters'][2]['stepSize'])
         toReturn = Decimal(int(Decimal(abs(tradeAmount))/stepSize))*stepSize
         toReturn = Decimal(toReturn).normalize()
-        return float(toReturn)
-
-    def marketSell(self, symbol, formattedTrade):
-        self.speak("NOW Selling "+symbol+" by "+str(formattedTrade))
-        # order = self.client.order_market_sell(
-        #         symbol=symbol,
-        #         quantity=formattedTrade
-        #     )
-
-    def marketBuy(self, symbol, formattedTrade):
-        self.speak("NOW Buying "+symbol+" by "+str(formattedTrade))
-        # order = self.client.order_market_buy(
-        #         symbol=symbol,
-        #         quantity=formattedTrade
-        #     )
+        return toReturn
 
     ## Report what the bot is doing using the Speaker class
     def speak(self, words):
